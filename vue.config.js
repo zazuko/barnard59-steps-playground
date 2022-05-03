@@ -34,7 +34,7 @@ module.exports = {
   },
 
   pwa: {
-    name: 'RDF Sketch',
+    name: 'barnard59-steps-playground',
     themeColor: '#ffb15e',
   },
 }

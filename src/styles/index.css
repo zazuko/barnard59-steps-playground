@@ -1,16 +1,18 @@
-@import './splitpanes.css';
-@import 'https://fonts.googleapis.com/css?family=Playfair+Display:400,700';
-@import './variables.css';
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@layer base {
-  input[type="text"] {
-    @apply border px-1 w-auto;
-  }
+input[type="text"] {
+  @apply border px-1 w-auto;
 }
-.cs-s-default {
+
+.splitpanes .splitpanes__pane {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.splitpanes.default-theme .splitpanes__pane {
   background-color: gray;
 }
+
+.splitpanes.default-theme .splitpanes__splitter {
+  border-right: 1px solid #eee;
+}
+
