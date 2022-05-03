@@ -1,40 +1,42 @@
 <script setup>
-import 'splitpanes/dist/splitpanes.css'
 import '@rdfjs-elements/rdf-editor'
 import { parsers } from '@rdf-esm/formats-common'
-import { onMounted, ref, toRaw } from 'vue'
-import rdf from 'rdf-ext'
+import { computed, onMounted, ref, watch } from 'vue'
 import Header from './Header.vue'
 import Editbox from '@/components/Editbox'
-import { steps } from './lib.js'
+
+const START_INDEX = 0
+
+const directory = ref()
+const selectedIndex = ref(START_INDEX)
+const selectedFormat = ref('text/turtle')
 
 const formats = [...parsers.keys()]
-const dataset = ref(rdf.dataset())
+const boxes = ref([])
 
-const format = ref('text/turtle')
-
-// RDF editors
-const box1 = ref()
-const content1 = ref()
-
-const box2 = ref()
-const content2 = ref()
-
-const box3 = ref()
-const content3 = ref()
-
-// Libs
-const selected = ref()
-const exampleLib = ref(steps)
-
-function loadExample (index) {
-  const step = toRaw(exampleLib.value)[index]
-  content1.value = step.content1
-  content2.value = step.content2
+function getExampleURL(){
+  const current = directory.value[selectedIndex.value]
+  return current.url
 }
 
+async function loadExample () {
+  const res = await fetch(getExampleURL())
+  const def = await res.json()
+  boxes.value = def.inputs
+}
+
+watch(() => selectedIndex.value, (index) => {
+  loadExample(index)
+})
+
+const resultTitle = computed(() => {
+  return directory.value ? directory.value[selectedIndex.value].name : 'Result'
+})
+
 onMounted(async () => {
-  await loadExample(0)
+  const res = await fetch('http://localhost:4000')
+  directory.value = await res.json()
+  await loadExample()
 })
 
 function onQuadsChanged (e) {
@@ -46,79 +48,83 @@ function onPrefixesParsed (e) {
   // console.log(e.detail.prefixes)
 }
 
-async function transform (selected) {
+const boxesRef = ref()
 
-  const getOperation = () => {
-    for (const def of steps) {
-      if (def.name === selected) {
-        return def.operation
+async function transform () {
+
+  const quadsChunks = []
+  for (const current of boxesRef.value.children) {
+    for (const box of current.children) {
+      if (box.tagName === 'RDF-EDITOR') {
+        quadsChunks.push(box.quads)
       }
     }
   }
-
-  const oper = getOperation(selected)
-  const stream = await oper(toRaw(box1.value.quads), toRaw(box2.value.quads))
-  const result = rdf.dataset()
-  for await (const dataset of stream) {
-    result.addAll([...dataset])
-  }
-  const resultQuads = [...result]
-  await box3.value.setQuads(resultQuads)
+  const url = getExampleURL()
+  console.log(url)
+  console.log(quadsChunks)
+  const res = await fetch(url,{
+    method:'POST',
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      inputs: quadsChunks
+    })
+  })
+  const response = await res.json()
+  console.log(response)
+  // const operation = steps[selectedIndex.value].operation
+  // const stream = await operation(toRaw(box1.value.quads), toRaw(box2.value.quads))
+  // const result = rdf.dataset()
+  // for await (const dataset of stream) {
+  //   result.addAll([...dataset])
+  // }
+  // const resultQuads = [...result]
+  // await box3.value.setQuads(resultQuads)
 }
 
 </script>
 
-
 <template>
   <Header/>
-
-  <div class="vertical">
+  <div>
     <div class="horizontal">
       <h3>Format</h3>
-      <select v-model="format">
-        <option v-for="format in formats" :key="format" :value="format">
+      <select v-model="selectedFormat">
+        <option v-for="format in formats">
           {{ format }}
         </option>
       </select>
     </div>
-    <Editbox
-      id="box1"
-      ref="box1"
-      :content="content1"
-      :format="format"
-      title="First chunk"
-      @onPrefixesParsed="onPrefixesParsed"
-      @onQuadsChanged="onQuadsChanged"
-    />
-
-    <Editbox
-      id="box2"
-      ref="box2"
-      :content="content2"
-      :format="format"
-      title="Second chunk"
-      @onPrefixesParsed="onPrefixesParsed"
-      @onQuadsChanged="onQuadsChanged"
-    />
+    <div ref="boxesRef" class="vertical">
+      <template v-for="(item, index) in boxes">
+        <Editbox
+            :content="item.data"
+            :format="selectedFormat"
+            :index="index"
+            :title="item.title"
+            @onPrefixesParsed="onPrefixesParsed"
+            @onQuadsChanged="onQuadsChanged"
+        />
+      </template>
+    </div>
     <div class="horizontal">
       <h3>Step</h3>
-      <select v-model="selected">
+      <select v-model="selectedIndex">
         <option disabled value="">Please select one</option>
-        <option v-for="(item, index) in exampleLib" :key="item.name">
+        <option v-for="(item, index) in directory" :key="index" :value="index">
           {{ item.name }}
         </option>
       </select>
-      <button v-if="selected" @click="transform(selected)">
+      <button @click="transform(selectedIndex)">
         Do transform!
       </button>
     </div>
     <Editbox
-      id="box3"
-      ref="box3"
-      :format="format"
-      :title="selected?`${selected} result`:''"
-      @onPrefixesParsed="onPrefixesParsed"
-      @onQuadsChanged="onQuadsChanged"
+        ref="resultBox"
+        :format="selectedFormat"
+        :title="resultTitle"
+        @onPrefixesParsed="onPrefixesParsed"
+        @onQuadsChanged="onQuadsChanged"
     />
 
   </div>

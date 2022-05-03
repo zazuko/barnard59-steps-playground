@@ -8,7 +8,7 @@ const props = defineProps({
     type: String
   },
   content: String,
-  id: String,
+  index: Number,
   title: String
 })
 
@@ -37,7 +37,7 @@ function onParsingFailed (e) {
 
 function onPrefixesParsed (e) {
   emit('onPrefixesParsed', {
-    id: props.id,
+    index: props.index,
     detail: e.detail,
   })
 }
@@ -45,7 +45,7 @@ function onPrefixesParsed (e) {
 function onQuadsChanged (e) {
   parseError.value = null
   emit('onQuadsChanged', {
-    id: props.id,
+    index: props.index,
     detail: e.detail,
   })
 }
@@ -82,5 +82,6 @@ defineExpose({
 .rdfBox {
   border: lightgray solid;
   border-radius: 5px;
+  padding: 5px;
 }
 </style>
