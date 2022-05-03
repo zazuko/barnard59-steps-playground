@@ -25,6 +25,13 @@ onMounted(async () => {
   })
 })
 
+async function setQuads (quads) {
+  const instance = rdfEditor.value
+  await instance.ready
+  instance.quads = quads
+}
+
+
 function onParsingFailed (e) {
   parseError.value = e?.detail?.error
 }
@@ -45,7 +52,8 @@ function onQuadsChanged (e) {
 }
 
 defineExpose({
-  quads:quads
+  quads:quads,
+  setQuads
 })
 
 </script>

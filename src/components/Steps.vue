@@ -2,31 +2,39 @@
 import 'splitpanes/dist/splitpanes.css'
 import '@rdfjs-elements/rdf-editor'
 import { parsers } from '@rdf-esm/formats-common'
-import { computed, defineComponent, onMounted, ref, toRaw } from 'vue'
+import { onMounted, ref, toRaw } from 'vue'
 import rdf from 'rdf-ext'
-import { chunk1, chunk2, metadata } from '@/components/data.js'
 import Header from './Header.vue'
 import Editbox from '@/components/Editbox'
+import { steps } from './lib.js'
 
 const formats = [...parsers.keys()]
 const dataset = ref(rdf.dataset())
 
 const format = ref('text/turtle')
 
+// RDF editors
 const box1 = ref()
+const content1 = ref()
+
 const box2 = ref()
+const content2 = ref()
+
 const box3 = ref()
+const content3 = ref()
 
-const content1 = ref(chunk1)
-const content2 = ref(chunk2)
-const content3 = ref(metadata)
+// Libs
+const selected = ref()
+const exampleLib = ref(steps)
 
-async function register (refBox, refContent) {
-
+function loadExample (index) {
+  const step = toRaw(exampleLib.value)[index]
+  content1.value = step.content1
+  content2.value = step.content2
 }
 
 onMounted(async () => {
-
+  await loadExample(0)
 })
 
 function onQuadsChanged (e) {
@@ -38,7 +46,28 @@ function onPrefixesParsed (e) {
   // console.log(e.detail.prefixes)
 }
 
+async function transform (selected) {
+
+  const getOperation = () => {
+    for (const def of steps) {
+      if (def.name === selected) {
+        return def.operation
+      }
+    }
+  }
+
+  const oper = getOperation(selected)
+  const stream = await oper(toRaw(box1.value.quads), toRaw(box2.value.quads))
+  const result = rdf.dataset()
+  for await (const dataset of stream) {
+    result.addAll([...dataset])
+  }
+  const resultQuads = [...result]
+  await box3.value.setQuads(resultQuads)
+}
+
 </script>
+
 
 <template>
   <Header/>
@@ -52,32 +81,43 @@ function onPrefixesParsed (e) {
       </option>
     </select>
     <Editbox
-      title="First chunk"
-      ref="box1"
       id="box1"
+      ref="box1"
       :content="content1"
       :format="format"
-      @onQuadsChanged="onQuadsChanged"
+      title="First chunk"
       @onPrefixesParsed="onPrefixesParsed"
+      @onQuadsChanged="onQuadsChanged"
     />
+
     <Editbox
-      title="Second chunk"
-      ref="box2"
       id="box2"
+      ref="box2"
       :content="content2"
       :format="format"
-      @onQuadsChanged="onQuadsChanged"
+      title="Second chunk"
       @onPrefixesParsed="onPrefixesParsed"
+      @onQuadsChanged="onQuadsChanged"
     />
-<!--    <Editbox-->
-<!--      title="Metadata"-->
-<!--      ref="box3"-->
-<!--      id="box3"-->
-<!--      :content="content3"-->
-<!--      :format="format"-->
-<!--      @onQuadsChanged="onQuadsChanged"-->
-<!--      @onPrefixesParsed="onPrefixesParsed"-->
-<!--    />-->
+
+    <select v-model="selected">
+      <option disabled value="">Please select one</option>
+      <option v-for="(item, index) in exampleLib" :key="item.name">
+        {{ item.name }}
+      </option>
+    </select>
+    <button v-if="selected" @click="transform(selected)">
+      Do transform!
+    </button>
+    <Editbox
+      id="box3"
+      ref="box3"
+      :format="format"
+      :title="selected"
+      @onPrefixesParsed="onPrefixesParsed"
+      @onQuadsChanged="onQuadsChanged"
+    />
+
   </div>
 
 </template>

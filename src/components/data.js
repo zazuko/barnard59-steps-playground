@@ -1,4 +1,4 @@
-const chunk1 = `@prefix schema: <http://schema.org/> .
+const observationChunk1 = `@prefix schema: <http://schema.org/> .
 @prefix schema: <http://schema.org/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
@@ -9,7 +9,7 @@ const chunk1 = `@prefix schema: <http://schema.org/> .
         <http://cubes.org/property> <http://cubes.org/valueA> .
 `
 
-const chunk2 = `@prefix schema: <http://schema.org/> .
+const observationChunk2 = `@prefix schema: <http://schema.org/> .
 @prefix schema: <http://schema.org/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
@@ -31,4 +31,4 @@ PREFIX schema: <http://schema.org/>
 .
 `
 
-export { chunk1, chunk2, metadata }
+export { observationChunk1, observationChunk2, metadata }
