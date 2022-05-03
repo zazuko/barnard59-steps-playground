@@ -1,0 +1,16 @@
+@import './splitpanes.css';
+@import 'https://fonts.googleapis.com/css?family=Playfair+Display:400,700';
+@import './variables.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  input[type="text"] {
+    @apply border px-1 w-auto;
+  }
+}
+.cs-s-default {
+  background-color: gray;
+}
