@@ -31,48 +31,56 @@ async function setQuads (quads) {
   instance.quads = quads
 }
 
-
 function onParsingFailed (e) {
   parseError.value = e?.detail?.error
 }
 
 function onPrefixesParsed (e) {
   emit('onPrefixesParsed', {
-    id:props.id,
-    detail:e.detail,
+    id: props.id,
+    detail: e.detail,
   })
 }
 
 function onQuadsChanged (e) {
   parseError.value = null
   emit('onQuadsChanged', {
-    id:props.id,
-    detail:e.detail,
+    id: props.id,
+    detail: e.detail,
   })
 }
 
 defineExpose({
-  quads:quads,
+  quads: quads,
   setQuads
 })
 
 </script>
 
 <template>
-  <h2>{{ title }}</h2>
-  <rdf-editor
-    ref="rdfEditor"
-    :format="format"
-    :value.prop="content"
-    auto-parse
-    class="w-full h-full overflow-hidden"
-    parseDelay="1000"
-    prefixes="schema"
-    @parsing-failed="onParsingFailed"
-    @quads-changed="onQuadsChanged"
-    @prefixes-parsed="onPrefixesParsed"
-  />
-  <div v-if="parseError">
-    {{ parseError }}
+  <div class="rdfBox">
+    <h3>{{ title }}</h3>
+    <rdf-editor
+      ref="rdfEditor"
+      :format="format"
+      :value.prop="content"
+      auto-parse
+      class="w-full h-full overflow-hidden"
+      parseDelay="1000"
+      prefixes="schema"
+      @parsing-failed="onParsingFailed"
+      @quads-changed="onQuadsChanged"
+      @prefixes-parsed="onPrefixesParsed"
+    />
+    <div v-if="parseError">
+      {{ parseError }}
+    </div>
   </div>
 </template>
+<style>
+
+.rdfBox {
+  border: lightgray solid;
+  border-radius: 5px;
+}
+</style>

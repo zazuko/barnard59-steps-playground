@@ -72,14 +72,15 @@ async function transform (selected) {
 <template>
   <Header/>
 
-  <div class="container">
-    <h2>Input</h2>
-
-    <select v-model="format">
-      <option v-for="format in formats" :key="format" :value="format">
-        {{ format }}
-      </option>
-    </select>
+  <div class="vertical">
+    <div class="horizontal">
+      <h3>Format</h3>
+      <select v-model="format">
+        <option v-for="format in formats" :key="format" :value="format">
+          {{ format }}
+        </option>
+      </select>
+    </div>
     <Editbox
       id="box1"
       ref="box1"
@@ -99,21 +100,23 @@ async function transform (selected) {
       @onPrefixesParsed="onPrefixesParsed"
       @onQuadsChanged="onQuadsChanged"
     />
-
-    <select v-model="selected">
-      <option disabled value="">Please select one</option>
-      <option v-for="(item, index) in exampleLib" :key="item.name">
-        {{ item.name }}
-      </option>
-    </select>
-    <button v-if="selected" @click="transform(selected)">
-      Do transform!
-    </button>
+    <div class="horizontal">
+      <h3>Step</h3>
+      <select v-model="selected">
+        <option disabled value="">Please select one</option>
+        <option v-for="(item, index) in exampleLib" :key="item.name">
+          {{ item.name }}
+        </option>
+      </select>
+      <button v-if="selected" @click="transform(selected)">
+        Do transform!
+      </button>
+    </div>
     <Editbox
       id="box3"
       ref="box3"
       :format="format"
-      :title="selected"
+      :title="selected?`${selected} result`:''"
       @onPrefixesParsed="onPrefixesParsed"
       @onQuadsChanged="onQuadsChanged"
     />
@@ -121,3 +124,17 @@ async function transform (selected) {
   </div>
 
 </template>
+<style>
+.vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.horizontal {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 20px;
+}
+</style>
