@@ -1,6 +1,6 @@
 # barnard59-steps-playground
 
-Utility to document distinct transforms that are not evident
+Utility to explain and document barnard59 Steps that are not self-evident
 
 ### Screenshot
 

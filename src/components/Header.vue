@@ -33,7 +33,7 @@
     </div>
     <span>/</span>
     <h1>
-      Steps Playground
+      Barnard59 Steps Playground
     </h1>
   </div>
 </template>
