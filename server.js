@@ -28,20 +28,31 @@ app.get('/example/:id', (req, res) => {
 })
 
 app.post('/example/:id', async (req, res) => {
-  const index = parseInt(req.params.id)
 
-  // Change this to a parallel mapping or something like that
-  const chunks = []
-  for (const jsonld of req.body.inputs) {
-    chunks.push(await jsonToQuads(jsonld))
+  try {
+    const index = parseInt(req.params.id)
+
+    // Change this to a parallel mapping or something like that
+    const chunks = []
+    for (const jsonld of req.body.inputs) {
+      chunks.push(await jsonToQuads(jsonld))
+    }
+    const parameters = JSON.parse(req.body.parameters)
+
+    // Sometimes these things return quads, quad arrays or datasets
+    const resultStream = await transforms[index].operation(chunks, parameters)
+    const { info, quads } = await getQuadsAndInfo(resultStream)
+    res.json({
+      flowInfo: info,
+      output: await quadsToJson(quads)
+    })
+  } catch (e) {
+    res.status(500)
+    res.json({
+      message: e.message
+    })
   }
-  // Sometimes these things return quads, quad arrays or datasets
-  const resultStream = await transforms[index].operation(...chunks)
-  const { info, quads } = await getQuadsAndInfo(resultStream)
-  res.json({
-    flowInfo: info,
-    output: await quadsToJson(quads)
-  })
+
 })
 
 app.listen(port, () => {

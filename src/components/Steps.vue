@@ -12,6 +12,8 @@ const directory = ref()
 const selectedIndex = ref(START_INDEX)
 const selectedFormat = ref('text/turtle')
 
+const error = ref()
+
 const formats = [...parsers.keys()]
 const boxes = ref([])
 
@@ -23,6 +25,8 @@ function getExampleURL () {
 async function loadExample () {
   const res = await fetch(getExampleURL())
   const def = await res.json()
+  updateResults([], [])
+  parameters.value = def.parameters ? JSON.stringify(def.parameters, null, 2) : '{}'
   boxes.value = def.inputs
 }
 
@@ -52,8 +56,9 @@ function onPrefixesParsed (e) {
 const boxesRef = ref()
 const resultBoxRef = ref()
 const flowInfo = ref()
+const parameters = ref()
 
-function updateResponse (quads, info) {
+function updateResults (quads, info) {
   resultBoxRef.value.setQuads(quads)
   flowInfo.value = info
 }
@@ -74,12 +79,29 @@ async function transform () {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      inputs: jsonChunks
+      inputs: jsonChunks,
+      parameters: parameters.value
     })
   })
-  const response = await res.json()
-  updateResponse(await jsonToQuads(response.output), response.flowInfo)
+  if (res.status === 200) {
+    const response = await res.json()
+    updateResults(await jsonToQuads(response.output), response.flowInfo)
+  } else {
+    error.value = await res.json()
+  }
+
 }
+
+const parametersValid = computed(() => {
+
+  try {
+    JSON.parse(parameters.value)
+  } catch (error) {
+    return error.message
+  }
+  return null
+
+})
 
 </script>
 
@@ -94,12 +116,21 @@ async function transform () {
           {{ item.name }}
         </option>
       </select>
-      <h3>Format</h3>
+      <button @click="transform(selectedIndex)">
+        Do transform!
+      </button>
+      <h4>Format</h4>
       <select v-model="selectedFormat">
         <option v-for="format in formats">
           {{ format }}
         </option>
       </select>
+    </div>
+    <div>{{ error }}</div>
+    <div class="horizontal">
+      <h4>Parameters</h4>
+      <textarea v-model="parameters" cols="80" rows="5"></textarea>
+      {{ parametersValid }}
     </div>
     <div ref="boxesRef" class="vertical">
       <template v-for="(item, index) in boxes">
@@ -113,12 +144,8 @@ async function transform () {
         />
       </template>
     </div>
-    <div class="horizontal">
 
-      <button @click="transform(selectedIndex)">
-        Do transform!
-      </button>
-    </div>
+    <h2>Result</h2>
     <Editbox
         ref="resultBoxRef"
         :format="selectedFormat"

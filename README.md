@@ -1,21 +1,19 @@
 # barnard59-steps-playground
 
-Utility to document distinct transforms
+Utility to document distinct transforms that are not evident
 
-## Project setup
+### Screenshot
 
-```
-npm install
-```
+![screenshot](./docs/screenshot.png)
 
-### Compiles and hot-reloads for development
+### start the server
 
 ```
-npm run serve
+npm run server
 ```
 
-### Compiles and minifies for production
+### start the UI
 
 ```
-npm run build
+npm run client
 ```

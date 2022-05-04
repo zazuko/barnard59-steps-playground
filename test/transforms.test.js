@@ -9,7 +9,7 @@ async function executeDefaultTransform (transform) {
   for (const def of transform.inputs) {
     quadChunks.push(await turtleToQuads(def.data))
   }
-  const resultStream = await transform.operation(...quadChunks)
+  const resultStream = await transform.operation(quadChunks, transform.parameters)
   return await getStream.array(resultStream)
 }
 
