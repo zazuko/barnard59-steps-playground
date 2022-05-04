@@ -4,6 +4,7 @@ import { parsers } from '@rdf-esm/formats-common'
 import { computed, onMounted, ref, watch } from 'vue'
 import Header from './Header.vue'
 import Editbox from '@/components/Editbox'
+import { quadsToJson, jsonToQuads } from '../../lib/serialization.js'
 
 const START_INDEX = 0
 
@@ -14,7 +15,7 @@ const selectedFormat = ref('text/turtle')
 const formats = [...parsers.keys()]
 const boxes = ref([])
 
-function getExampleURL(){
+function getExampleURL () {
   const current = directory.value[selectedIndex.value]
   return current.url
 }
@@ -49,44 +50,42 @@ function onPrefixesParsed (e) {
 }
 
 const boxesRef = ref()
+const resultBoxRef = ref()
+const flowInfo = ref()
+
+function updateResponse (quads, info) {
+  resultBoxRef.value.setQuads(quads)
+  flowInfo.value = info
+}
 
 async function transform () {
 
-  const quadsChunks = []
+  const jsonChunks = []
   for (const current of boxesRef.value.children) {
     for (const box of current.children) {
       if (box.tagName === 'RDF-EDITOR') {
-        quadsChunks.push(box.quads)
+        jsonChunks.push(await quadsToJson(box.quads))
       }
     }
   }
+
   const url = getExampleURL()
-  console.log(url)
-  console.log(quadsChunks)
-  const res = await fetch(url,{
-    method:'POST',
-    headers: {"Content-Type": "application/json"},
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      inputs: quadsChunks
+      inputs: jsonChunks
     })
   })
   const response = await res.json()
-  console.log(response)
-  // const operation = steps[selectedIndex.value].operation
-  // const stream = await operation(toRaw(box1.value.quads), toRaw(box2.value.quads))
-  // const result = rdf.dataset()
-  // for await (const dataset of stream) {
-  //   result.addAll([...dataset])
-  // }
-  // const resultQuads = [...result]
-  // await box3.value.setQuads(resultQuads)
+  updateResponse(await jsonToQuads(response.output), response.flowInfo)
 }
 
 </script>
 
 <template>
   <Header/>
-  <div>
+  <div v-if="directory">
     <div class="horizontal">
       <h3>Format</h3>
       <select v-model="selectedFormat">
@@ -120,13 +119,20 @@ async function transform () {
       </button>
     </div>
     <Editbox
-        ref="resultBox"
+        ref="resultBoxRef"
         :format="selectedFormat"
         :title="resultTitle"
         @onPrefixesParsed="onPrefixesParsed"
         @onQuadsChanged="onQuadsChanged"
     />
+    <h3>Outcoming flow</h3>
+    <ol>
+      <li v-for="current in flowInfo">{{ current }}</li>
+    </ol>
 
+  </div>
+  <div v-else>
+    <h3>Could not get examples</h3>
   </div>
 
 </template>
