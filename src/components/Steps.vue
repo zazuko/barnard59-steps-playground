@@ -23,11 +23,17 @@ function getExampleURL () {
 }
 
 async function loadExample () {
-  const res = await fetch(getExampleURL())
-  const def = await res.json()
-  updateResults([], [])
-  parameters.value = def.parameters ? JSON.stringify(def.parameters, null, 2) : '{}'
-  boxes.value = def.inputs
+
+  try {
+    const res = await fetch(getExampleURL())
+    const def = await res.json()
+    updateResults([], [])
+    parameters.value = def.parameters ? JSON.stringify(def.parameters, null, 2) : '{}'
+    boxes.value = def.inputs
+  } catch {
+    directory.value = null
+  }
+
 }
 
 watch(() => selectedIndex.value, (index) => {
@@ -162,7 +168,7 @@ const parametersValid = computed(() => {
 
   </div>
   <div v-else>
-    <h3>Could not get examples</h3>
+    <h3>Could not get examples from server</h3>
   </div>
 
 </template>
