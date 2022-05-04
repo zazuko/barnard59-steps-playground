@@ -85,8 +85,15 @@ async function transform () {
 
 <template>
   <Header/>
-  <div v-if="directory">
+  <div v-if="directory" class="vertical">
     <div class="horizontal">
+      <h3>Step</h3>
+      <select v-model="selectedIndex">
+        <option disabled value="">Please select one</option>
+        <option v-for="(item, index) in directory" :key="index" :value="index">
+          {{ item.name }}
+        </option>
+      </select>
       <h3>Format</h3>
       <select v-model="selectedFormat">
         <option v-for="format in formats">
@@ -107,13 +114,7 @@ async function transform () {
       </template>
     </div>
     <div class="horizontal">
-      <h3>Step</h3>
-      <select v-model="selectedIndex">
-        <option disabled value="">Please select one</option>
-        <option v-for="(item, index) in directory" :key="index" :value="index">
-          {{ item.name }}
-        </option>
-      </select>
+
       <button @click="transform(selectedIndex)">
         Do transform!
       </button>
@@ -125,10 +126,12 @@ async function transform () {
         @onPrefixesParsed="onPrefixesParsed"
         @onQuadsChanged="onQuadsChanged"
     />
-    <h3>Outcoming flow</h3>
-    <ol>
-      <li v-for="current in flowInfo">{{ current }}</li>
-    </ol>
+    <div v-if="flowInfo">
+      <h3>Outcoming flow</h3>
+      <ol>
+        <li v-for="current in flowInfo">{{ current }}</li>
+      </ol>
+    </div>
 
   </div>
   <div v-else>

@@ -82,6 +82,5 @@ defineExpose({
 .rdfBox {
   border: lightgray solid;
   border-radius: 5px;
-  padding: 5px;
 }
 </style>

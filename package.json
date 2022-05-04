@@ -6,7 +6,8 @@
   "scripts": {
     "server": "node server.js",
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build"
+    "build": "vue-cli-service build",
+    "test": "mocha"
   },
   "main": "src/main.js",
   "files": [
@@ -38,7 +39,8 @@
     "buffer": "^6.0.3",
     "get-stream": "^6.0.1",
     "process": "^0.11.10",
-    "readable-stream": "^3.6.0"
+    "readable-stream": "^3.6.0",
+    "mocha": "^9.0.1"
   },
   "license": "MIT",
   "repository": {
