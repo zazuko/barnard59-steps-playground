@@ -13,7 +13,7 @@ async function executeDefaultTransform (transform) {
   return await getStream.array(resultStream)
 }
 
-describe('lib.serialization', () => {
+describe('lib.transforms', () => {
   it('can execute examples', async () => {
 
     for (const transform of transforms) {

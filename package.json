@@ -4,6 +4,7 @@
   "type": "module",
   "author": "Zazuko (https://zazuko.com)",
   "scripts": {
+    "run": "node server.js && vue-cli-service serve ",
     "server": "node server.js",
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",

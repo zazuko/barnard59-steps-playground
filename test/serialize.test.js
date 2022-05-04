@@ -5,7 +5,7 @@ import rdf from 'rdf-ext'
 import Readable from 'readable-stream'
 
 describe('lib.serialization', () => {
-  it('roundtrip', async () => {
+  it('can do roundtrip', async () => {
 
     const data = [
       rdf.quad(rdf.namedNode('http://example/org/s1'), rdf.namedNode('http://schema.org/name'), rdf.literal('Alice')),
@@ -19,7 +19,7 @@ describe('lib.serialization', () => {
     strictEqual(quads.length, 3)
   })
 
-  it('serialize and info', async () => {
+  it('can serialize and info', async () => {
 
     const quadArray1 = [
       rdf.quad(rdf.namedNode('http://example/org/s1'), rdf.namedNode('http://schema.org/name'), rdf.literal('Alice'))
