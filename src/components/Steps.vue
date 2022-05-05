@@ -87,7 +87,6 @@ async function getJSONLdFromBoxes (ref) {
       .flat()
       .filter((element) => element.tagName === 'RDF-EDITOR')
       .map(async (box) => {
-        await box.ready
         return quadsToJson(box.quads)
       })
   return await Promise.all(promises)
@@ -140,6 +139,7 @@ async function transform () {
       </select>
     </div>
     <div class="error">{{ error }}</div>
+    <div>{{current.text}}</div>
     <Editbox
         ref="operationBoxRef"
         :content="current.operation.data"
@@ -183,6 +183,7 @@ async function transform () {
     <h2>Result</h2>
     <Editbox
         ref="resultBoxRef"
+        readOnly="false"
         :format="selectedFormat"
         @onPrefixesParsed="onPrefixesParsed"
         @onQuadsChanged="onQuadsChanged"

@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 
 const props = defineProps({
   format: {
@@ -9,7 +9,11 @@ const props = defineProps({
   },
   content: String,
   index: Number,
-  title: String
+  title: String,
+  readOnly: {
+    default: 'false',
+    type:String
+  }
 })
 
 const emit = defineEmits(['onQuadsChanged', 'onPrefixesParsed'])
@@ -63,12 +67,14 @@ defineExpose({
 
 </script>
 
+
 <template>
   <div class="rdfBox">
     <h4>{{ title }}</h4>
     <rdf-editor
         ref="rdfEditor"
         :format="format"
+        :readOnly="readOnly"
         :value.prop="content"
         auto-parse
         class="w-full h-full overflow-hidden"

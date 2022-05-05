@@ -1,6 +1,6 @@
 import { describe, it } from 'mocha'
 import { strictEqual } from 'assert'
-import { jsonToQuads, turtleToQuads } from '../lib/serialization.js'
+import { turtleToQuads } from '../lib/serialization.js'
 import getStream from 'get-stream'
 import { exampleSteps } from '../lib/exampleSteps.js'
 import { run } from '../lib/runner.js'
@@ -15,7 +15,7 @@ async function toQuadsAndRun (transform) {
 }
 
 describe('lib.transforms', () => {
-  it('can execute examples', async () => {
+  it('examples execute and produce quads', async () => {
 
     for (const transform of exampleSteps) {
       const result = await toQuadsAndRun(transform)
