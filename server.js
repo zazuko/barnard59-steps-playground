@@ -1,8 +1,9 @@
 import express from 'express'
 import cors from 'cors'
 import bodyParser from 'body-parser'
-import { transforms } from './lib/transforms.js'
+import { exampleSteps } from './lib/exampleSteps.js'
 import { jsonToQuads, getQuadsAndInfo, quadsToJson } from './lib/serialization.js'
+import { run } from './lib/runner.js'
 
 const port = process.env.PORT || 4000
 const api = `http://localhost:${port}`
@@ -13,7 +14,7 @@ app.use(bodyParser.json())
 
 app.get('/', (req, res) => {
   const lib = []
-  transforms.forEach((current, index) => {
+  exampleSteps.forEach((current, index) => {
     lib.push({
       name: current.name,
       url: `${api}/example/${index}`
@@ -24,7 +25,7 @@ app.get('/', (req, res) => {
 
 app.get('/example/:id', (req, res) => {
   const index = parseInt(req.params.id)
-  res.json(transforms[index])
+  res.json(exampleSteps[index])
 })
 
 app.post('/example/:id', async (req, res) => {
@@ -32,24 +33,23 @@ app.post('/example/:id', async (req, res) => {
   try {
     const index = parseInt(req.params.id)
 
-    // Change this to a parallel mapping or something like that
-    const chunks = []
-    for (const jsonld of req.body.inputs) {
-      chunks.push(await jsonToQuads(jsonld))
-    }
-    const parameters = JSON.parse(req.body.parameters)
+    const inputChunksQuads = await Promise.all(req.body.inputChunks.map(jsonToQuads))
+    const parametersQuads = await Promise.all(req.body.inputParameters.map(jsonToQuads))
+    const operationQuads = await jsonToQuads(req.body.operation)
 
-    // Sometimes these things return quads, quad arrays or datasets
-    const resultStream = await transforms[index].operation(chunks, parameters)
+    const resultStream = await run(operationQuads, inputChunksQuads, parametersQuads, exampleSteps[index].overwriteParams)
     const { info, quads } = await getQuadsAndInfo(resultStream)
+
     res.json({
       flowInfo: info,
       output: await quadsToJson(quads)
     })
-  } catch (e) {
+
+  } catch (error) {
+    console.log(error)
     res.status(500)
     res.json({
-      message: e.message
+      message: error.message
     })
   }
 
