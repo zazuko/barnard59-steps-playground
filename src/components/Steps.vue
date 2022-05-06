@@ -189,27 +189,26 @@ async function transform () {
     </template>
 
     <template v-if="result">
-      <h2>Output stream</h2>
-      <div class="vertical">
-        <template v-for="(item, index) in result.outputChunks">
-          <Editbox
-              :format="selectedFormat"
-              :quads="item.quads"
-              :title="item.title"
-          />
-        </template>
-      </div>
-      <h2>Aggregate</h2>
+      <h2>Result</h2>
       <Editbox
           ref="resultBoxRef"
           :format="selectedFormat"
           :quads="result.aggregate"
           readOnly="false"
       />
+      <h2>Output stream</h2>
+      <div class="vertical">
+        <template v-for="(item, index) in result.outputChunks">
+          <Editbox
+              has-toggle="true"
+              :format="selectedFormat"
+              :quads="item.quads"
+              :title="item.title"
+          />
+        </template>
+      </div>
+
     </template>
-
-
-
 
   </div>
   <div v-else>
@@ -226,7 +225,7 @@ async function transform () {
 .vertical {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 5px;
 }
 
 .controls {

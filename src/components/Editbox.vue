@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref } from 'vue'
 
 const props = defineProps({
   format: {
@@ -8,7 +8,10 @@ const props = defineProps({
     type: String
   },
   quads: Array,
-  title: String
+  title: String,
+  hasToggle: {
+    default: false
+  }
 })
 
 const parseError = ref()
@@ -23,29 +26,50 @@ function onParsingFailed (e) {
   parseError.value = e?.detail?.error
 }
 
+const opened = ref(false)
+
 </script>
 
 <template>
-  <div class="rdfBox">
-    <h4>{{ title }}</h4>
-    <rdf-editor
-        :quads="quads"
+  <template v-if="hasToggle">
+    <h4 class="clickable" @click="opened=!opened">{{ title }}</h4>
+    <rdf-editor v-if="opened"
         ref="rdfEditor"
         :format="format"
+        :quads="quads"
         auto-parse
         class="w-full h-full overflow-hidden"
         parseDelay="1000"
         prefixes="schema"
         @parsing-failed="onParsingFailed"
     />
-    <div v-if="parseError">
-      {{ parseError }}
+  </template>
+  <template v-else>
+    <div class="rdfBox">
+      <h4>{{ title }}</h4>
+      <rdf-editor
+          ref="rdfEditor"
+          :format="format"
+          :quads="quads"
+          auto-parse
+          class="w-full h-full overflow-hidden"
+          parseDelay="1000"
+          prefixes="schema"
+          @parsing-failed="onParsingFailed"
+      />
+      <div v-if="parseError">
+        {{ parseError }}
+      </div>
     </div>
-  </div>
+  </template>
 </template>
 <style>
 
-h3 {
+.clickable {
+  cursor: pointer;
+}
+
+h4 {
   color: gray;
 }
 
