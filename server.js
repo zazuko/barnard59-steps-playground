@@ -2,7 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import bodyParser from 'body-parser'
 import { exampleSteps } from './lib/exampleSteps.js'
-import { jsonToQuads, getQuadsAndInfo, quadsToJson } from './lib/serialization.js'
+import { getOutputChunksWithInfo, toQuads, toString } from './lib/serialization.js'
 import { run } from './lib/runner.js'
 
 const port = process.env.PORT || 4000
@@ -16,7 +16,7 @@ app.get('/', (req, res) => {
   const lib = []
   exampleSteps.forEach((current, index) => {
     lib.push({
-      name: current.name,
+      title: current.title,
       url: `${api}/example/${index}`
     })
   })
@@ -33,16 +33,15 @@ app.post('/example/:id', async (req, res) => {
   try {
     const index = parseInt(req.params.id)
 
-    const inputChunksQuads = await Promise.all(req.body.inputChunks.map(jsonToQuads))
-    const parametersQuads = await Promise.all(req.body.inputParameters.map(jsonToQuads))
-    const operationQuads = await jsonToQuads(req.body.operation)
+    const operationQuads = toQuads(req.body.operation)
+    const inputChunksQuads = req.body.inputChunks.map(toQuads)
+    const parametersQuads = req.body.inputParameters.map(toQuads)
 
     const resultStream = await run(operationQuads, inputChunksQuads, parametersQuads, exampleSteps[index].overwriteParams)
-    const { info, quads } = await getQuadsAndInfo(resultStream)
+    const outputChunks = await getOutputChunksWithInfo(resultStream, async (quads) => await toString(quads))
 
     res.json({
-      flowInfo: info,
-      output: await quadsToJson(quads)
+      outputChunks
     })
 
   } catch (error) {

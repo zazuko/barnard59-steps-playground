@@ -1,6 +1,6 @@
 import { describe, it } from 'mocha'
-import { strictEqual, equal } from 'assert'
-import { quadsToJson, jsonToQuads, getQuadsAndInfo } from '../lib/serialization.js'
+import { strictEqual } from 'assert'
+import { getOutputChunksWithInfo, toQuads, toString } from '../lib/serialization.js'
 import rdf from 'rdf-ext'
 import Readable from 'readable-stream'
 
@@ -13,8 +13,7 @@ describe('lib.serialization', () => {
       rdf.quad(rdf.namedNode('http://example/org/o1'), rdf.namedNode('http://schema.org/name'), rdf.literal('Bob'))
     ]
 
-    const json = await quadsToJson(data)
-    const quads = await jsonToQuads(json)
+    const quads = toQuads(toString(data))
 
     strictEqual(quads.length, 3)
   })
@@ -40,14 +39,14 @@ describe('lib.serialization', () => {
       return stream
     }
 
-    const { info, quads } = await getQuadsAndInfo(await getReadable())
+    const outputChunks = await getOutputChunksWithInfo(await getReadable())
 
-    strictEqual(info.length, 3)
-    strictEqual(info[0], 'Array of length 1')
-    strictEqual(info[1], 'DatasetExt of length 1')
-    strictEqual(info[2], 'quad')
-
-    strictEqual(quads.length, 3)
-
+    strictEqual(outputChunks.length, 3)
+    strictEqual(outputChunks[0].title, 'Array of length 1')
+    strictEqual(outputChunks[1].title, 'DatasetExt of length 1')
+    strictEqual(outputChunks[2].title, 'Quad')
+    strictEqual(outputChunks[0].data.length, 1)
+    strictEqual(outputChunks[1].data.length, 1)
+    strictEqual(outputChunks[2].data.length, 1)
   })
 })

@@ -1,12 +1,12 @@
 <script setup>
 import '@rdfjs-elements/rdf-editor'
-import { parsers } from '@rdf-esm/formats-common'
-import { computed, onMounted, ref, toRaw, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import Header from './Header.vue'
 import Editbox from '@/components/Editbox'
-import { quadsToJson, jsonToQuads } from '../../lib/serialization.js'
+import { toQuads, toString } from '../../lib/serialization.js'
+import { parsers } from '@rdf-esm/formats-common'
 
-// Related to the examples
+// The examples
 const directory = ref()
 const START_INDEX = 0
 const selectedIndex = ref(START_INDEX)
@@ -14,10 +14,10 @@ const selectedIndex = ref(START_INDEX)
 // The RDF editors
 const current = ref({
   name: 'Step',
-  text:'',
+  text: '',
   operation: {
     title: '',
-    data: '',
+    quads: [],
   },
   inputChunks: [],
   inputParameters: []
@@ -31,22 +31,38 @@ const resultBoxRef = ref()
 
 // Formats
 const formats = [...parsers.keys()]
+// const formats = ['application/n-quads', 'text/turtle']
 const selectedFormat = ref('text/turtle')
 
 // Feedback
 const error = ref()
-const flowInfo = ref()
 
 function getExampleURL () {
   return directory.value[selectedIndex.value].url
+}
+
+function toTitleAndQuads (chunk) {
+  return {
+    title: chunk.title,
+    quads: toQuads(chunk.data)
+  }
 }
 
 async function loadExample () {
   try {
     const res = await fetch(getExampleURL())
     const example = await res.json()
-    updateResults([], [])
-    current.value = example
+    const operation = example.operation ? toTitleAndQuads(example.operation) : {}
+    const inputChunks = example.inputChunks ? example.inputChunks.map(toTitleAndQuads) : []
+    const inputParameters = example.inputParameters ? example.inputParameters.map(toTitleAndQuads) : []
+    current.value = {
+      title: example.title,
+      text: example.text,
+      operation: operation,
+      inputChunks: inputChunks,
+      inputParameters: inputParameters
+    }
+    clearResults()
     error.value = null
   } catch (error) {
     error.value = error.message
@@ -63,54 +79,50 @@ onMounted(async () => {
   await loadExample()
 })
 
-function onQuadsChanged (e) {
-  // console.log(e)
+const result = ref({})
+
+function clearResults(){
+  result.value = null
 }
 
-function onPrefixesParsed (e) {
-  // console.log(e)
+function updateResults (response) {
+  const outputChunks = response.outputChunks ? response.outputChunks.map(toTitleAndQuads) : []
+  const aggregate = toQuads(toString(outputChunks.map(chunk => chunk.quads).flat())) // Remove duplicates
+  result.value = {
+    outputChunks: outputChunks,
+    aggregate: aggregate
+  }
 }
 
-function updateResults (quads, info) {
-  resultBoxRef.value.setQuads(quads)
-  flowInfo.value = info
-}
-
-async function getJSONLdFromBoxes (ref) {
-
+function grabN3FromBoxes (ref) {
   if (!ref) {
     return []
   }
-
-  const promises = Array.from(ref.children)
+  return Array.from(ref.children)
       .map((element) => Array.from(element.children))
       .flat()
       .filter((element) => element.tagName === 'RDF-EDITOR')
-      .map(async (box) => {
-        return quadsToJson(box.quads)
-      })
-  return await Promise.all(promises)
+      .map((box) => toString(box.quads))
 }
 
 async function transform () {
 
-  const operation = await quadsToJson(await operationBoxRef.value.getQuads())
   const url = getExampleURL()
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      operation: operation,
-      inputChunks: await getJSONLdFromBoxes(inputChunksRef.value),
-      inputParameters: await getJSONLdFromBoxes(inputParametersRef.value),
+      operation: grabN3FromBoxes(operationBoxRef.value)[0],
+      inputChunks: grabN3FromBoxes(inputChunksRef.value),
+      inputParameters: grabN3FromBoxes(inputParametersRef.value),
     })
   })
   if (res.status === 200) {
     const response = await res.json()
-    updateResults(await jsonToQuads(response.output), response.flowInfo)
+    updateResults(response)
     error.value = null
   } else {
-    updateResults ([], [])
+    clearResults()
     error.value = await res.json()
   }
 
@@ -119,13 +131,15 @@ async function transform () {
 </script>
 
 <template>
+
   <Header/>
   <div v-if="directory" class="container">
     <div class="controls">
       <select v-model="selectedIndex">
         <option disabled value="">Please select one</option>
+
         <option v-for="(item, index) in directory" :key="index" :value="index">
-          {{ item.name }}
+          {{ item.title }}
         </option>
       </select>
       <button @click="transform(selectedIndex)">
@@ -139,26 +153,23 @@ async function transform () {
       </select>
     </div>
     <div class="error">{{ error }}</div>
-    <div>{{current.text}}</div>
-    <Editbox
-        ref="operationBoxRef"
-        :content="current.operation.data"
-        :format="selectedFormat"
-        :title="current.operation.title"
-        @onPrefixesParsed="onPrefixesParsed"
-        @onQuadsChanged="onQuadsChanged"
-    />
+    <div>{{ current.text }}</div>
+
+    <div ref="operationBoxRef" class="vertical">
+      <Editbox
+          :format="selectedFormat"
+          :quads="current.operation.quads"
+          :title="current.operation.title"
+      />
+    </div>
 
     <template v-if="current.inputParameters">
       <div ref="inputParametersRef" class="vertical">
         <template v-for="(item, index) in current.inputParameters">
           <Editbox
-              :content="item.data"
               :format="selectedFormat"
-              :index="index"
+              :quads="item.quads"
               :title="item.title"
-              @onPrefixesParsed="onPrefixesParsed"
-              @onQuadsChanged="onQuadsChanged"
           />
         </template>
       </div>
@@ -169,31 +180,36 @@ async function transform () {
       <div ref="inputChunksRef" class="vertical">
         <template v-for="(item, index) in current.inputChunks">
           <Editbox
-              :content="item.data"
               :format="selectedFormat"
-              :index="index"
+              :quads="item.quads"
               :title="item.title"
-              @onPrefixesParsed="onPrefixesParsed"
-              @onQuadsChanged="onQuadsChanged"
           />
         </template>
       </div>
     </template>
 
-    <h2>Result</h2>
-    <Editbox
-        ref="resultBoxRef"
-        readOnly="false"
-        :format="selectedFormat"
-        @onPrefixesParsed="onPrefixesParsed"
-        @onQuadsChanged="onQuadsChanged"
-    />
-    <div v-if="flowInfo">
-      <h2>Outcoming flow</h2>
-      <ol>
-        <li v-for="outputChunk in flowInfo">{{ outputChunk }}</li>
-      </ol>
-    </div>
+    <template v-if="result">
+      <h2>Output stream</h2>
+      <div class="vertical">
+        <template v-for="(item, index) in result.outputChunks">
+          <Editbox
+              :format="selectedFormat"
+              :quads="item.quads"
+              :title="item.title"
+          />
+        </template>
+      </div>
+      <h2>Aggregate</h2>
+      <Editbox
+          ref="resultBoxRef"
+          :format="selectedFormat"
+          :quads="result.aggregate"
+          readOnly="false"
+      />
+    </template>
+
+
+
 
   </div>
   <div v-else>
@@ -206,6 +222,7 @@ async function transform () {
 .error {
   color: red;
 }
+
 .vertical {
   display: flex;
   flex-direction: column;
