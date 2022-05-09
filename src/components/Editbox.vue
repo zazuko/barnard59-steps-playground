@@ -26,14 +26,14 @@ function onParsingFailed (e) {
   parseError.value = e?.detail?.error
 }
 
-const opened = ref(false)
+const isOpen = ref(false)
 
 </script>
 
 <template>
   <template v-if="hasToggle">
-    <h4 class="clickable" @click="opened=!opened">{{ title }}</h4>
-    <rdf-editor v-if="opened"
+    <h4 class="clickable" @click="isOpen=!isOpen">{{ title }}</h4>
+    <rdf-editor v-if="isOpen"
         ref="rdfEditor"
         :format="format"
         :quads="quads"

@@ -18,7 +18,7 @@
     "@rdfjs/parser-jsonld": "^1.3.1",
     "@zazuko/rdf-vocabularies": "^2021.9.22-3",
     "barnard59-core": "^1.1.4",
-    "barnard59-rdf": "^1.2.4",
+    "barnard59-rdf": "zazuko/barnard59-rdf#graph_stats",
     "body-parser": "^1.20.0",
     "cors": "^2.8.5",
     "express": "^4.18.1",
