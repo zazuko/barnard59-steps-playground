@@ -3,14 +3,15 @@ import { strictEqual } from 'assert'
 import { toQuads } from '../lib/serialization.js'
 import getStream from 'get-stream'
 import { exampleSteps } from '../lib/exampleSteps.js'
-import { run } from '../lib/runner.js'
+import { prepareInputStream, run } from '../lib/runner.js'
 
 async function toQuadsAndRun (transform) {
 
-  const inputChunksQuads = await Promise.all(transform.inputChunks.map((x) => x.data).map(toQuads))
   const parametersQuads = transform.inputParameters ? await Promise.all(transform.inputParameters.map((x) => x.data).map(toQuads)) : []
   const operationQuads = await toQuads(transform.operation.data)
-  const resultStream = await run(operationQuads, inputChunksQuads, parametersQuads, transform.overwriteParams)
+  const inputChunksQuads = await Promise.all(transform.inputChunks.map((x) => x.data).map(toQuads))
+  const inputStream = await prepareInputStream(inputChunksQuads, transform.inputStreamMode)
+  const resultStream = await run(operationQuads, inputStream, parametersQuads, transform.overwriteParams)
   return await getStream.array(resultStream)
 }
 

@@ -3,7 +3,7 @@ import cors from 'cors'
 import bodyParser from 'body-parser'
 import { exampleSteps } from './lib/exampleSteps.js'
 import { getOutputChunksWithInfo, toQuads, toString } from './lib/serialization.js'
-import { run } from './lib/runner.js'
+import { prepareInputStream, run } from './lib/runner.js'
 
 const port = process.env.PORT || 4000
 const api = `http://localhost:${port}`
@@ -37,7 +37,8 @@ app.post('/example/:id', async (req, res) => {
     const inputChunksQuads = req.body.inputChunks.map(toQuads)
     const parametersQuads = req.body.inputParameters.map(toQuads)
 
-    const resultStream = await run(operationQuads, inputChunksQuads, parametersQuads, exampleSteps[index].overwriteParams)
+    const inputStream = await prepareInputStream(inputChunksQuads, req.body.inputStreamMode)
+    const resultStream = await run(operationQuads, inputStream, parametersQuads, exampleSteps[index].overwriteParams)
     const outputChunks = await getOutputChunksWithInfo(resultStream, async (quads) => await toString(quads))
 
     res.json({

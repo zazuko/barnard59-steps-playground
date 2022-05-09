@@ -58,6 +58,7 @@ async function loadExample () {
     current.value = {
       title: example.title,
       text: example.text,
+      inputStreamMode: example.inputStreamMode,
       operation: operation,
       inputChunks: inputChunks,
       inputParameters: inputParameters
@@ -115,6 +116,7 @@ async function transform () {
       operation: grabN3FromBoxes(operationBoxRef.value)[0],
       inputChunks: grabN3FromBoxes(inputChunksRef.value),
       inputParameters: grabN3FromBoxes(inputParametersRef.value),
+      inputStreamMode: current.value.inputStreamMode
     })
   })
   if (res.status === 200) {
@@ -176,7 +178,10 @@ async function transform () {
     </template>
 
     <template v-if="current.inputChunks">
+      <div class="controls">
       <h2>Input stream</h2>
+      <h4>({{current.inputStreamMode}})</h4>
+      </div>
       <div ref="inputChunksRef" class="vertical">
         <template v-for="(item, index) in current.inputChunks">
           <Editbox
