@@ -50,6 +50,7 @@ jobs:
         id: docker_meta
         with:
           images: ghcr.io/zazuko/barnard59-steps-playground
+          include-pipeline-id: true
 
       - name: Build and push Docker images
         id: docker_build
