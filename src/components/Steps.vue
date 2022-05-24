@@ -53,7 +53,7 @@ function toTitleAndQuads (chunk) {
 
 async function loadExample () {
   try {
-    const res = await fetch(getExampleURL())
+    const res = await fetch(getExampleURL(), { credentials: 'include' })
     const example = await res.json()
     const operation = example.operation ? toTitleAndQuads(example.operation) : {}
     const inputChunks = example.inputChunks ? example.inputChunks.map(toTitleAndQuads) : []
@@ -78,7 +78,7 @@ watch(() => selectedIndex.value, (index) => {
 })
 
 onMounted(async () => {
-  const res = await fetch(publicBaseUrl)
+  const res = await fetch(publicBaseUrl, { credentials: 'include' })
   directory.value = await res.json()
   await loadExample()
 })
@@ -114,6 +114,7 @@ async function transform () {
   const url = getExampleURL()
   const res = await fetch(url, {
     method: 'POST',
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       operation: grabN3FromBoxes(operationBoxRef.value)[0],
