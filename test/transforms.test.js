@@ -1,9 +1,9 @@
 import { describe, it } from 'mocha'
 import { strictEqual } from 'assert'
-import { toQuads } from '../lib/serialization.js'
-import getStream from 'get-stream'
+import { getOutputChunksWithInfo, toQuads, toString } from '../lib/serialization.js'
 import { exampleSteps } from '../lib/exampleSteps.js'
 import { prepareInputStream, run } from '../lib/runner.js'
+import getStream from 'get-stream'
 
 async function toQuadsAndRun (transform) {
 
@@ -11,18 +11,26 @@ async function toQuadsAndRun (transform) {
   const operationQuads = await toQuads(transform.operation.data)
   const inputChunksQuads = await Promise.all(transform.inputChunks.map((x) => x.data).map(toQuads))
   const inputStream = await prepareInputStream(inputChunksQuads, transform.inputStreamMode)
-  const resultStream = await run(operationQuads, inputStream, parametersQuads, transform.overwriteParams)
-  return await getStream.array(resultStream)
+  return await run(operationQuads, inputStream, parametersQuads, transform.overwriteParams)
 }
 
-describe('lib.transforms', () => {
-  it('examples execute and produce quads', async () => {
-
-    for (const transform of exampleSteps) {
-      const result = await toQuadsAndRun(transform)
-      strictEqual(result.length > 0, true, transform.name)
-    }
-
+describe('examples execute and produce quads', async () => {
+  exampleSteps.forEach(transform => {
+    it(`for transform ${transform.title}`, async function () {
+      const resultStream = await toQuadsAndRun(transform)
+      const result = await getStream.array(resultStream)
+      strictEqual(result.length > 0, true)
+    })
   })
+})
 
+
+describe('resultStream can be serialized', async () => {
+  exampleSteps.forEach(transform => {
+    it(`for transform ${transform.title}`, async function () {
+      const resultStream = await toQuadsAndRun(transform)
+      const outputChunks = await getOutputChunksWithInfo(resultStream, async (quads) => await toString(quads))
+      strictEqual(outputChunks.length > 0, true)
+    })
+  })
 })
