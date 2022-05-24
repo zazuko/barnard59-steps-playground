@@ -1,0 +1,11 @@
+.git
+.github
+node_modules/
+dist/
+docs/
+public/
+src/
+/README.md
+/babel*
+/jsconfig*
+/vue.config.*
