@@ -1,10 +1,13 @@
 <script setup>
 import '@rdfjs-elements/rdf-editor'
 import { onMounted, ref, watch } from 'vue'
+import { inject } from '@vue/runtime-core'
 import Header from './Header.vue'
 import Editbox from '@/components/Editbox'
 import { toQuads, toString } from '../../lib/serialization.js'
 import { parsers } from '@rdf-esm/formats-common'
+
+const publicBaseUrl = inject('publicBaseUrl')
 
 // The examples
 const directory = ref()
@@ -75,14 +78,14 @@ watch(() => selectedIndex.value, (index) => {
 })
 
 onMounted(async () => {
-  const res = await fetch('http://localhost:4000')
+  const res = await fetch(publicBaseUrl)
   directory.value = await res.json()
   await loadExample()
 })
 
 const result = ref({})
 
-function clearResults(){
+function clearResults () {
   result.value = null
 }
 
@@ -179,8 +182,8 @@ async function transform () {
 
     <template v-if="current.inputChunks">
       <div class="controls">
-      <h2>Input stream</h2>
-      <h4>({{current.inputStreamMode}})</h4>
+        <h2>Input stream</h2>
+        <h4>({{ current.inputStreamMode }})</h4>
       </div>
       <div ref="inputChunksRef" class="vertical">
         <template v-for="(item, index) in current.inputChunks">
@@ -205,10 +208,10 @@ async function transform () {
       <div class="vertical">
         <template v-for="(item, index) in result.outputChunks">
           <Editbox
-              has-toggle="true"
               :format="selectedFormat"
               :quads="item.quads"
               :title="item.title"
+              has-toggle="true"
           />
         </template>
       </div>
