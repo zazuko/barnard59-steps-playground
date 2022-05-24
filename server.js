@@ -9,9 +9,13 @@ const port = process.env.PORT || 4000
 
 // the URL where this backend is publicly reachable
 const publicBaseUrl = process.env.PUBLIC_BASE_URL || `http://localhost:${port}`
+const corsAllowOrigin = process.env.CORS_ALLOW_ORIGIN || 'http://localhost:8080'
 
 const app = express()
-app.use(cors())
+app.use(cors({
+  origin: corsAllowOrigin,
+  credentials: true
+}))
 app.use(bodyParser.json())
 
 app.get('/', (req, res) => {
