@@ -79,7 +79,7 @@ jobs:
           node-version: "16"
 
       - name: Replace hard-coded backend URL with the deployed instance
-        run: grep -rl "http://localhost:4000" . --exclude-dir=.git --exclude-dir=.github | xargs sed -i 's|http://localhost:4000|https://barnard59-steps-playground-backend.zazukoians.org|g'
+        run: grep -rl "process.env.PUBLIC_BASE_URL" . --exclude-dir=.git --exclude-dir=.github | xargs sed -i 's|process\.env\.PUBLIC_BASE_URL|"https://barnard59-steps-playground-backend.zazukoians.org"|g'
 
       - name: Install dependencies
         run: npm ci
