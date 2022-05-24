@@ -6,7 +6,9 @@ import { getOutputChunksWithInfo, toQuads, toString } from './lib/serialization.
 import { prepareInputStream, run } from './lib/runner.js'
 
 const port = process.env.PORT || 4000
-const api = `http://localhost:${port}`
+
+// the URL where this backend is publicly reachable
+const publicBaseUrl = process.env.PUBLIC_BASE_URL || `http://localhost:${port}`
 
 const app = express()
 app.use(cors())
@@ -17,7 +19,7 @@ app.get('/', (req, res) => {
   exampleSteps.forEach((current, index) => {
     lib.push({
       title: current.title,
-      url: `${api}/example/${index}`
+      url: `${publicBaseUrl}/example/${index}`
     })
   })
   res.json(lib)

@@ -4,6 +4,7 @@ RUN apk add --no-cache tini
 
 WORKDIR /app
 
+ENV PUBLIC_BASE_URL="http://localhost:4000"
 ENV PORT="4000"
 EXPOSE 4000
 
