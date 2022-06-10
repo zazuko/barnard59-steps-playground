@@ -42,6 +42,7 @@ const isOpen = ref(false)
       <rdf-editor
           :format="format"
           :quads="quads"
+          prefixes="code"
           auto-parse
           class="w-full h-full overflow-hidden"
           parseDelay="1000"
